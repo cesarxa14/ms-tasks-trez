@@ -2,6 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { Task } from "../schemas/Task.schema";
 import { RpcException } from "@nestjs/microservices";
 import type { TasksRepository } from "../repositories/task.repository.interface";
+import { IGetPaginatedTask } from "../interfaces/IGetPaginatedTasks";
 
 
 @Injectable()
@@ -14,21 +15,20 @@ export class TaskService {
 
     async create(payload: Partial<Task>){
         try{
-            console.log('payload: ', payload)
             const task = this.tasksRepository.create(payload);
             return task;
         }catch(err){
-            console.log('err: ', err)
+            console.log('TaskService.create.err: ', err)
             throw err;
         }
     }
 
-    async getAllTasksFilter(data: any){
+    async getAllTasksFilter(data: IGetPaginatedTask){
         try{
             const tasks = await this.tasksRepository.findAll(data);
             return tasks;
         }catch(err){
-            console.log('err: ', err)
+            console.log('TaskService.getAllTasksFilter.err: ', err)
             throw err;
         }
     }
@@ -40,10 +40,9 @@ export class TaskService {
                 message: 'Task no existe en la BD',
                 statusCode: 404,
             });
-            console.log('task: ', {task, id})
             return task;
         }catch(err){
-            console.log('err: ', err)
+            console.log('TaskService.getTaskById.err: ', err)
             throw err;
         }
     }
@@ -53,7 +52,7 @@ export class TaskService {
             const tasks = await this.tasksRepository.update(payload);
             return tasks;
         }catch(err){
-            console.log('err: ', err)
+            console.log('TaskService.updateTask.err: ', err)
             throw err;
         }
     }
@@ -69,10 +68,9 @@ export class TaskService {
             });
 
             const task = await this.tasksRepository.delete(id);
-            console.log('task deleted: ', task)
             return task;
         }catch(err){
-            console.log('err: ', err)
+            console.log('TaskService.deleteTask.err: ', err)
             throw err;
         }
     }
