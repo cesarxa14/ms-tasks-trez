@@ -2,12 +2,10 @@ import { Controller } from "@nestjs/common";
 import { MessagePattern, Payload } from "@nestjs/microservices";
 import { TaskService } from "./services/task.service";
 
-
 @Controller()
 export class TaskController {
 
-      constructor(private readonly taskService: TaskService) {}
-    
+    constructor(private readonly taskService: TaskService) {}
 
     @MessagePattern('tasks.create')
     create(@Payload() data: any){
@@ -16,14 +14,15 @@ export class TaskController {
     }
 
     @MessagePattern('tasks.findAll')
-    findAll(){
-        const tasks = this.taskService.getAllTasksFilter(); 
+    findAll(@Payload() data: any){
+        const tasks = this.taskService.getAllTasksFilter(data); 
         return tasks;
     }
 
     @MessagePattern('tasks.findOne')
     findOne(@Payload() data: any){
-        const newTask = this.taskService.getTaskById(data); 
+        const task = this.taskService.getTaskById(data); 
+        return task;
     }
 
     @MessagePattern('tasks.update')

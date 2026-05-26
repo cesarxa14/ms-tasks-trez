@@ -5,7 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TaskController } from './tasks/task.controller';
 import { TaskService } from './tasks/services/task.service';
-import { TasksRepository } from './tasks/repositories/task.repository';
+import { TasksRepositoryImpl } from './tasks/repositories/task.repository.impl';
 import { TaskSchema } from './tasks/schemas/Task.schema';
 
 @Module({
@@ -13,12 +13,19 @@ import { TaskSchema } from './tasks/schemas/Task.schema';
     ConfigModule.forRoot({
       isGlobal:true
     }),
-    MongooseModule.forRoot('mongodb://localhost:27017/tasks'),
+    MongooseModule.forRoot(process.env.MONGO_URL!),
     MongooseModule.forFeature([
                 { name: 'Task', schema: TaskSchema },
             ]),
   ],
   controllers: [AppController, TaskController],
-  providers: [AppService, TaskService, TasksRepository],
+  providers: [
+    AppService, 
+    TaskService, 
+    {
+      provide: 'TasksRepository',
+      useClass: TasksRepositoryImpl,
+    }
+  ],
 })
 export class AppModule {}

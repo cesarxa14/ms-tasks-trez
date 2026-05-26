@@ -1,7 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Transport, MicroserviceOptions } from '@nestjs/microservices';
-import { NestMicroserviceOptions } from '@nestjs/common/interfaces/microservices/nest-microservice-options.interface';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { AllRpcExceptionsFilter } from './common/interceptors/http-error.filter';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
@@ -10,10 +11,12 @@ async function bootstrap() {
       transport: Transport.TCP,
       options: {
         host: '0.0.0.0',
-        port: 3001
+        port: Number(process.env.PORT) ?? 3001
       }
     },
   );
+  app.useGlobalInterceptors(new ResponseInterceptor());
+  app.useGlobalFilters(new AllRpcExceptionsFilter());
   await app.listen();
 }
 bootstrap();

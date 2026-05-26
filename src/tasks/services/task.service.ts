@@ -1,13 +1,15 @@
-import { Injectable } from "@nestjs/common";
-import { TasksRepository } from "../repositories/task.repository";
+import { Inject, Injectable } from "@nestjs/common";
 import { Task } from "../schemas/Task.schema";
+import { RpcException } from "@nestjs/microservices";
+import type { TasksRepository } from "../repositories/task.repository.interface";
 
 
 @Injectable()
 export class TaskService {
 
     constructor(
-        private readonly tasksRepository: TasksRepository
+        @Inject('TasksRepository')
+        private readonly tasksRepository: TasksRepository,
     ){}
 
     async create(payload: Partial<Task>){
@@ -21,9 +23,9 @@ export class TaskService {
         }
     }
 
-    async getAllTasksFilter(){
+    async getAllTasksFilter(data: any){
         try{
-            const tasks = this.tasksRepository.findAll();
+            const tasks = await this.tasksRepository.findAll(data);
             return tasks;
         }catch(err){
             console.log('err: ', err)
@@ -33,7 +35,12 @@ export class TaskService {
 
     async getTaskById(id: string){
         try{
-            const task = this.tasksRepository.findById(id);
+            const task = await this.tasksRepository.findById(id);
+            if(!task) throw new RpcException({
+                message: 'Task no existe en la BD',
+                statusCode: 404,
+            });
+            console.log('task: ', {task, id})
             return task;
         }catch(err){
             console.log('err: ', err)
@@ -43,7 +50,7 @@ export class TaskService {
 
     async updateTask(payload: any){
         try{
-            const tasks = this.tasksRepository.update(payload);
+            const tasks = await this.tasksRepository.update(payload);
             return tasks;
         }catch(err){
             console.log('err: ', err)
@@ -53,11 +60,20 @@ export class TaskService {
 
     async deleteTask(id: string){
         try{
-            const tasks = this.tasksRepository.delete(id);
-            return tasks;
+
+            const existTask = await this.getTaskById(id);
+
+            if(!existTask) throw new RpcException({
+                message: 'Task no existe en la BD',
+                statusCode: 404,
+            });
+
+            const task = await this.tasksRepository.delete(id);
+            console.log('task deleted: ', task)
+            return task;
         }catch(err){
             console.log('err: ', err)
             throw err;
         }
     }
-}
+} 
